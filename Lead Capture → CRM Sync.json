@@ -1,0 +1,254 @@
+{
+  "name": "Lead Capture → CRM Sync",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-capture",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "bb54e1bc-3319-473d-adfa-1db016db9d98",
+      "name": "Webhook",
+      "webhookId": "15b6b0a9-8cc0-4048-b180-c9071da07938"
+    },
+    {
+      "parameters": {
+        "url": "=https://disify.com/api/email/{{ $json.body.email }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "e2336de7-7848-4f4d-b250-3d3d6ce9c262",
+      "name": "HTTP Request",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1RhlphPJSK20McSTtAhfvO_NRkVcNybdu51QDzOoE3Do",
+          "mode": "list",
+          "cachedResultName": "Leads CRM",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RhlphPJSK20McSTtAhfvO_NRkVcNybdu51QDzOoE3Do/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RhlphPJSK20McSTtAhfvO_NRkVcNybdu51QDzOoE3Do/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name ": "={{ $('Webhook').item.json.body.name }} ",
+            "Email": "={{ $('Webhook').item.json.body.email }}",
+            "Company": "={{ $('Webhook').item.json.body.company }}",
+            "Email Valid": "={{ $json.format }}",
+            "Disposable": "= {{ $json.disposable }} ",
+            "Timestamp": "={{ $now }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name ",
+              "displayName": "Name ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email Valid",
+              "displayName": "Email Valid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Disposable",
+              "displayName": "Disposable",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        448,
+        0
+      ],
+      "id": "3f30e4ed-ec0d-47c1-944d-9a6eb326eb88",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "JpuUVVv1nVdUBmCg",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C3623QRFW",
+          "mode": "list",
+          "cachedResultName": "newleads"
+        },
+        "text": "=📥 New lead: {{ $('Webhook').item.json.body.name }} ({{ $('Webhook').item.json.body.company }}) Email: {{ $('Webhook').item.json.body.email }} Valid email: {{ $('HTTP Request').item.json.format }} | Disposable: {{ $('HTTP Request').item.json.disposable }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.7,
+      "position": [
+        672,
+        0
+      ],
+      "id": "381fd127-0eaf-4690-98f9-e5c11f1270d2",
+      "name": "Send a message",
+      "webhookId": "5041a508-b296-4cca-a5e5-35ab944eb80b",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "KeCGcoyNM5Lb5W0P",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C3623QRFW",
+          "mode": "list",
+          "cachedResultName": "newleads"
+        },
+        "text": "=⚠️ Enrichment failed for lead: {{ $json.body.email }} ",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.7,
+      "position": [
+        496,
+        144
+      ],
+      "id": "860f8230-b961-4f80-a3c2-b15274767fba",
+      "name": "Send a message1",
+      "webhookId": "bb8766e3-2bb3-466f-8ced-640b4a431158",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "KeCGcoyNM5Lb5W0P",
+          "name": "Slack account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "88c15bae-7374-4852-a941-928b44b6066e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4c34277cf5bbbcfc73ed25ff95ce2f723993bb6c15a348774df0d5a280fe84ac"
+  },
+  "nodeGroups": [],
+  "id": "2JyYvUxjKkWf5l1t",
+  "tags": []
+}
