@@ -62,7 +62,7 @@ Webhook → HTTP Request (Disify) ──success──→ Google Sheets → Slack
 
 ## Demo
 
-*[Add a link to your screen recording here once you've made one.]*
+https://www.loom.com/share/6cf80783c54f47b39551d29d6efda00b
 
 ## Notes
 
